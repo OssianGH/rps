@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Piedra Papel Tijera - Estilo Slime Rancher</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Bubblegum+Sans&display=swap");
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Bubblegum Sans", cursive;
+      background: linear-gradient(135deg,
+          #5ec4ff 0%,
+          #43b5eb 50%,
+          #3db9c3 100%);
+      color: white;
+      text-align: center;
+      overflow: hidden;
+      height: 100vh;
+      position: relative;
+    }
+
+    .background-bubbles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      animation: float 15s infinite ease-in-out;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) translateX(0);
+      }
+
+      25% {
+        transform: translateY(-20px) translateX(10px);
+      }
+
+      50% {
+        transform: translateY(-10px) translateX(-15px);
+      }
+
+      75% {
+        transform: translateY(-25px) translateX(5px);
+      }
+    }
+
+    .game-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .game-title {
+      font-size: 48px;
+      margin: 20px 0;
+      color: #ff4f8b;
+      text-shadow: -2px -2px 0 white, 2px -2px 0 white, -2px 2px 0 white,
+        2px 2px 0 white, 0px 3px 5px rgba(0, 0, 0, 0.3);
+      letter-spacing: 1px;
+    }
+
+    /* Estilo de botones Slime Rancher */
+    .slime-button {
+      display: inline-flex;
+      align-items: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin: 10px auto;
+      filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.2));
+      transition: transform 0.2s, filter 0.2s;
+      position: relative;
+    }
+
+    .slime-button:hover {
+      transform: scale(1.05);
+      filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.3));
+    }
+
+    .slime-button:active {
+      transform: scale(0.98);
+    }
+
+    .slime-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: scale(1);
+      filter: grayscale(70%) drop-shadow(0 4px 4px rgba(0, 0, 0, 0.1));
+    }
+
+    .button-circle {
+      width: 60px;
+      height: 60px;
+      background: #ff4f8b;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+      border: 3px solid white;
+      box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.2),
+        inset 2px 2px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .button-circle img,
+    .button-circle i {
+      width: 30px;
+      height: 30px;
+      color: white;
+      font-size: 26px;
+    }
+
+    .button-text {
+      height: 54px;
+      background: #ff4f8b;
+      border-radius: 0 27px 27px 0;
+      padding: 0 30px 0 40px;
+      margin-left: -30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border: 3px solid white;
+      border-left: none;
+      box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.2),
+        inset 2px 2px 0 rgba(255, 255, 255, 0.3);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Pantallas del juego */
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 70vh;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* Pantalla de inicio */
+    .rounds-selector {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+      border: 3px solid white;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .rounds-selector h2 {
+      margin-bottom: 15px;
+      font-size: 28px;
+      color: white;
+      text-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .rounds-input {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .rounds-input button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #ff4f8b;
+      border: 2px solid white;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .rounds-input span {
+      font-size: 32px;
+      margin: 0 20px;
+      min-width: 50px;
+    }
+
+    /* Pantalla de juego */
+    .stream-container {
+      position: relative;
+      margin: 20px auto;
+      width: 60%;
+      height: 240px;
+      border-radius: 15px;
+      overflow: hidden;
+      border: 5px solid white;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    #stream {
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #loading-indicator {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 18px;
+    }
+
+    .game-info {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      padding: 15px;
+      margin: 20px 0;
+      border: 3px solid white;
+      width: 40%;
+      height: 240px;
+      justify-content: center;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .round-indicator {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: white;
+      text-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .move {
+      font-size: 20px;
+      margin: 5px 0;
+    }
+
+    .result {
+      font-size: 28px;
+      margin: 15px 0;
+      color: #ffde59;
+      text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Modal de resultado final */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal {
+      background: linear-gradient(135deg,
+          #5ec4ff 0%,
+          #43b5eb 50%,
+          #3db9c3 100%);
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      border: 5px solid white;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      position: relative;
+      animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes pop-in {
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .modal h2 {
+      font-size: 36px;
+      margin-bottom: 20px;
+      color: #ff4f8b;
+      text-shadow: -2px -2px 0 white, 2px -2px 0 white, -2px 2px 0 white,
+        2px 2px 0 white;
+    }
+
+    .modal p {
+      font-size: 24px;
+      margin-bottom: 30px;
+      color: white;
+      text-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .final-score {
+      font-size: 28px;
+      margin: 20px 0;
+      color: #ffde59;
+      text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+    }
+
+    .error-message {
+      color: #ff4f4f;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 10px;
+      margin: 10px 0;
+      font-weight: bold;
+      display: none;
+    }
+
+    .container-game {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      gap: 1rem;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+
+<body>
+  <div class="background-bubbles" id="bubbles-container"></div>
+
+  <div class="game-container">
+    <h1 class="game-title">Piedra Papel Tijera</h1>
+
+    <!-- Pantalla de inicio -->
+    <div class="screen active" id="start-screen">
+      <div class="rounds-selector">
+        <h2>¿Cuántas rondas quieres jugar?</h2>
+        <div class="rounds-input">
+          <button id="decrease-rounds">-</button>
+          <span id="rounds-display">3</span>
+          <button id="increase-rounds">+</button>
+        </div>
+      </div>
+
+      <button class="slime-button" id="start-button">
+        <div class="button-circle">
+          <i class="fas fa-play"></i>
+        </div>
+        <div class="button-text">Iniciar Juego</div>
+      </button>
+    </div>
+
+    <!-- Pantalla de juego -->
+    <div class="screen" id="game-screen">
+      <div class="round-indicator" id="round-indicator">Ronda 1 de 3</div>
+      <div class="container-game">
+        <div class="stream-container">
+          <img id="stream" src="http://192.168.149.1:5999/" crossorigin="anonymous" alt="Cámara" />
+          <div id="loading-indicator">Procesando...</div>
+        </div>
+
+        <div class="game-info">
+          <p id="user-move" class="move"></p>
+          <p id="computer-move" class="move"></p>
+          <p id="result" class="result"></p>
+        </div>
+      </div>
+      <button class="slime-button" id="play-button">
+        <div class="button-circle">
+          <i class="fas fa-hand-rock"></i>
+        </div>
+        <div class="button-text">Jugar Ronda</div>
+      </button>
+
+      <button class="slime-button" id="refresh-button">
+        <div class="button-circle">
+          <i class="fas fa-sync-alt"></i>
+        </div>
+        <div class="button-text">Actualizar Cámara</div>
+      </button>
+
+      <div id="error-message" class="error-message"></div>
+    </div>
+  </div>
+
+  <!-- Modal de resultado final -->
+  <div class="modal-overlay" id="result-modal">
+    <div class="modal">
+      <h2 id="final-title">¡Fin del Juego!</h2>
+      <p id="final-message">Has ganado la partida</p>
+      <p id="final-score" class="final-score">
+        Puntuación: Tú 3 - 1 Computadora
+      </p>
+
+      <button class="slime-button" id="restart-button">
+        <div class="button-circle">
+          <i class="fas fa-home"></i>
+        </div>
+        <div class="button-text">Volver al Inicio</div>
+      </button>
+    </div>
+  </div>
+
+  <canvas id="canvas" width="320" height="240" style="display: none"></canvas>
+
+  <script>
+    // Crear burbujas de fondo
+    function createBubbles() {
+      const container = document.getElementById("bubbles-container");
+      const colors = ["#ff4f8b", "#ffde59", "#43b5eb", "#5ec4ff", "#3db9c3"];
+
+      for (let i = 0; i < 15; i++) {
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        const size = Math.random() * 100 + 50;
+        const left = Math.random() * 100;
+        const top = Math.random() * 100;
+        const delay = Math.random() * 5;
+        const duration = Math.random() * 10 + 10;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        bubble.style.width = `${size}px`;
+        bubble.style.height = `${size}px`;
+        bubble.style.left = `${left}%`;
+        bubble.style.top = `${top}%`;
+        bubble.style.animationDelay = `${delay}s`;
+        bubble.style.animationDuration = `${duration}s`;
+        bubble.style.opacity = Math.random() * 0.1 + 0.05;
+
+        container.appendChild(bubble);
+      }
+    }
+
+    // Elementos del DOM
+    const startScreen = document.getElementById("start-screen");
+    const gameScreen = document.getElementById("game-screen");
+    const resultModal = document.getElementById("result-modal");
+
+    const roundsDisplay = document.getElementById("rounds-display");
+    const decreaseRoundsBtn = document.getElementById("decrease-rounds");
+    const increaseRoundsBtn = document.getElementById("increase-rounds");
+    const startBtn = document.getElementById("start-button");
+    const playBtn = document.getElementById("play-button");
+    const refreshBtn = document.getElementById("refresh-button");
+    const restartBtn = document.getElementById("restart-button");
+
+    const stream = document.getElementById("stream");
+    const canvas = document.getElementById("canvas");
+    const context = canvas.getContext("2d");
+    const loadingIndicator = document.getElementById("loading-indicator");
+    const errorMessage = document.getElementById("error-message");
+
+    const roundIndicator = document.getElementById("round-indicator");
+    const userMoveElement = document.getElementById("user-move");
+    const computerMoveElement = document.getElementById("computer-move");
+    const resultElement = document.getElementById("result");
+
+    const finalTitle = document.getElementById("final-title");
+    const finalMessage = document.getElementById("final-message");
+    const finalScore = document.getElementById("final-score");
+
+    // Variables del juego
+    let totalRounds = 3;
+    let currentRound = 0;
+    let playerScore = 0;
+    let computerScore = 0;
+    let isProcessing = false;
+    let streamTimestamp = Date.now();
+
+    // Inicializar
+    createBubbles();
+
+    // Selector de rondas
+    decreaseRoundsBtn.addEventListener("click", () => {
+      let rounds = parseInt(roundsDisplay.textContent);
+      if (rounds > 1) {
+        rounds--;
+        roundsDisplay.textContent = rounds;
+      }
+    });
+
+    increaseRoundsBtn.addEventListener("click", () => {
+      let rounds = parseInt(roundsDisplay.textContent);
+      if (rounds < 10) {
+        rounds++;
+        roundsDisplay.textContent = rounds;
+      }
+    });
+
+    // Función para actualizar el stream
+    function refreshStream() {
+      streamTimestamp = Date.now();
+      stream.src = `http://192.168.149.1:5999/`;
+      return new Promise((resolve) => {
+        stream.onload = () => resolve();
+        stream.onerror = () => {
+          showError("Error al cargar la cámara. Verifica tu conexión.");
+          resolve();
+        };
+      });
+    }
+
+    // Mostrar error
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = "block";
+      setTimeout(() => {
+        errorMessage.style.display = "none";
+      }, 5000);
+    }
+
+    // Cambiar pantallas
+    function showScreen(screen) {
+      document.querySelectorAll(".screen").forEach((s) => {
+        s.classList.remove("active");
+      });
+      screen.classList.add("active");
+    }
+
+    // Iniciar juego
+    startBtn.addEventListener("click", async () => {
+      totalRounds = parseInt(roundsDisplay.textContent);
+      currentRound = 0;
+      playerScore = 0;
+      computerScore = 0;
+
+      roundIndicator.textContent = `Ronda 1 de ${totalRounds}`;
+      userMoveElement.textContent = "";
+      computerMoveElement.textContent = "";
+      resultElement.textContent = "";
+
+      try {
+        await refreshStream();
+        showScreen(gameScreen);
+      } catch (error) {
+        showError("Error al inicializar la cámara. Intenta de nuevo.");
+      }
+    });
+
+    // Refrescar stream
+    refreshBtn.addEventListener("click", async () => {
+      refreshBtn.disabled = true;
+      try {
+        await refreshStream();
+      } catch (error) {
+        showError("Error al actualizar la cámara. Intenta de nuevo.");
+      } finally {
+        refreshBtn.disabled = false;
+      }
+    });
+
+    // Jugar ronda
+    playBtn.addEventListener("click", async () => {
+      if (isProcessing) return;
+
+      try {
+        isProcessing = true;
+        playBtn.disabled = true;
+        loadingIndicator.style.display = "block";
+
+        // Actualizar stream antes de capturar
+        await refreshStream();
+
+        // Pequeña pausa para asegurar que el stream esté actualizado
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        // Capturar imagen del stream
+        context.drawImage(stream, 0, 0, canvas.width, canvas.height);
+        const dataURL = canvas.toDataURL("image/jpeg");
+
+        //descargar cambas automaticamente
+        /*console.log("Capturando imagen...", dataURL);
+        const link = document.createElement("a");
+        link.href = dataURL;
+        link.download = "captura.jpg";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);*/
+
+        // Enviar al servidor
+        const response = await fetch("/play", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: dataURL }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error del servidor: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        console.log("Respuesta del servidor:", data);
+
+        // Actualizar interfaz con resultados
+        userMoveElement.textContent = "Tu jugada: " + data.user_move;
+        computerMoveElement.textContent =
+          "Jugada del ordenador: " + data.computer_move;
+        resultElement.textContent = data.result;
+
+        // Actualizar puntuación
+        if (data.result.includes("You win!")) playerScore++;
+        else if (data.result.includes("Computer wins!")) computerScore++;
+        console.log(
+          `Puntuación - Tú: ${playerScore}, Computadora: ${computerScore}`
+        );
+
+        // Actualizar indicador de ronda
+        if (data.result.includes("You win!")) {
+          resultElement.style.color = "#4caf50"; // Verde
+        } else if (data.result.includes("Computer wins!")) {
+          resultElement.style.color = "#f44336"; // Rojo
+        } else {
+          resultElement.style.color = "#ffde59"; // Amarillo
+        }
+
+        try {
+          await fetch("/move", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ computer_move: data.computer_move }),
+          }).then((response) => {
+            if (!response.ok) {
+              throw new Error(`Error del servidor: ${response.status}`);
+            }
+            return response.json();
+          });
+          console.log("Movimiento enviado correctamente");
+        } catch (error) {
+          console.error("Error al enviar el movimiento:", error);
+          // No mostramos error al usuario ya que esta llamada es secundaria
+        }
+
+        currentRound++;
+
+        // Verificar si el juego ha terminado
+        if (currentRound < totalRounds) {
+          roundIndicator.textContent = `Ronda ${currentRound + 1
+            } de ${totalRounds}`;
+          playBtn.disabled = false;
+        } else {
+          // Mostrar modal con resultado final
+          let resultTitle, resultMessage;
+
+          if (playerScore > computerScore) {
+            resultTitle = "¡Victoria!";
+            resultMessage = "¡Has ganado la partida!";
+          } else if (playerScore < computerScore) {
+            resultTitle = "¡Derrota!";
+            resultMessage = "Has perdido la partida";
+          } else {
+            resultTitle = "¡Empate!";
+            resultMessage = "La partida ha terminado en empate";
+          }
+
+          finalTitle.textContent = resultTitle;
+          finalMessage.textContent = resultMessage;
+          finalScore.textContent = `Puntuación: Tú ${playerScore} - ${computerScore} Computadora`;
+
+          setTimeout(() => {
+            resultModal.style.display = "flex";
+          }, 1000);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        showError("Error al procesar tu jugada. Intenta de nuevo.");
+        playBtn.disabled = false;
+      } finally {
+        isProcessing = false;
+        loadingIndicator.style.display = "none";
+      }
+    });
+
+    // Volver al inicio
+    restartBtn.addEventListener("click", () => {
+      resultModal.style.display = "none";
+      playBtn.disabled = false;
+      showScreen(startScreen);
+    });
+
+    // Inicializar stream al cargar la página
+    window.addEventListener("load", async () => {
+      try {
+        await refreshStream();
+      } catch (error) {
+        showError("Error al cargar la cámara. Verifica tu conexión.");
+      }
+    });
+
+    // Manejar errores de carga del stream
+    stream.addEventListener("error", () => {
+      showError("Error al cargar la cámara. Verifica tu conexión.");
+    });
+  </script>
+</body>
+
+</html>
