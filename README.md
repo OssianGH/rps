@@ -21,12 +21,9 @@
 4. Ir al directorio del servidor local:
 ```sh
     cd rps_game_remote
-    python -m venv venv
-    source venv/bin/activate  # En Windows usar `venv\Scripts\activate`
 ```
 5. Crear un entorno virtual:
 ```sh
-    cd rps_game_remote
     python -m venv venv
     source venv/bin/activate  # En Windows usar `venv\Scripts\activate`
 ```
